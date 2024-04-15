@@ -1,25 +1,20 @@
 const express = require("express");
 const expressWs = require("express-ws");
 const WebSocket = require("ws");
-
 const pino = require("pino");
 
-const logger = pino(); // Initialize pino logger
+const logger = pino();
 
 const app = express();
 const { getWss } = expressWs(app);
 
-// Define WebSocket endpoint
-app.ws("/chats", (ws, req) => {
+app.ws("/yin", (ws, req) => {
   const clientIp = req.socket.remoteAddress;
-  logger.info(`WebSocket connection established from IP: ${clientIp}`);
+  logger.info(`WebSocket connection established for yin from IP: ${clientIp}`);
 
-  // Handle incoming messages
   ws.on("message", (message) => {
-    logger.info(`Received message from ${clientIp}: ${message}`);
-
-    // Broadcast the message to all clients
-    const channel = getWss("/chats");
+    logger.info(`Received message for yin from ${clientIp}: ${message}`);
+    const channel = getWss("/yin");
     channel.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(message);
@@ -27,13 +22,30 @@ app.ws("/chats", (ws, req) => {
     });
   });
 
-  // Handle closing of WebSocket connection
   ws.on("close", () => {
-    logger.info(`WebSocket connection closed for IP: ${clientIp}`);
+    logger.info(`WebSocket connection closed for yin from IP: ${clientIp}`);
   });
 });
 
-// Start the server
+app.ws("/yang", (ws, req) => {
+  const clientIp = req.socket.remoteAddress;
+  logger.info(`WebSocket connection established for yang from IP: ${clientIp}`);
+
+  ws.on("message", (message) => {
+    logger.info(`Received message for yang from ${clientIp}: ${message}`);
+    const channel = getWss("/yang");
+    channel.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  });
+
+  ws.on("close", () => {
+    logger.info(`WebSocket connection closed for yang from IP: ${clientIp}`);
+  });
+});
+
 const PORT = 8080;
 app.listen(PORT, () => {
   logger.info(`WS Server is listening on port ${PORT}`);
